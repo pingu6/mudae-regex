@@ -1,0 +1,11 @@
+discord.py
+jishaku
+prisma
+pygit2
+more_itertools
+psutil
+toml
+aiohttp
+Pillow
+git+https://github.com/Rapptz/discord-ext-menus
+git+https://github.com/InterStella0/starlight-dpy

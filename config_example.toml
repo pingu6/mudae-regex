@@ -1,0 +1,19 @@
+PREFIX = 'bot prefix'
+TOKEN = 'bot token'             # https://discordpy.readthedocs.io/en/stable/discord.html#creating-a-bot-account
+imgchest_key = 'imgchest token' # https://imgchest.com/docs/api/1.0/general/authorization
+
+exclusion_list = [
+    'Sky Striker Ace - Roze',
+    'Numbers 32: Marine Biting Dragon - Shark Drake',
+    'Sky Striker Ace - Raye',
+    'Chaos Emperor Dragon - Envoy of the End',
+    'Levia-Dragon - Daedalus',
+    'Holy Lightning - Books',
+    'Virtual World Lady - Lulu',
+    'Destiny HERO - Plasma',
+    'Lucia - The Amethyst Messenger',
+    'Virtual World Rabbit - Tutu',
+    'Numbers 104: Masquerade Magician - Shining',
+    "Numbers 40: Gimmick Puppet - Heaven's Strings",
+    'Numbers 15: Gimmick Puppet - Giant Killer',
+]

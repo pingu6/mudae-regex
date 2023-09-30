@@ -1,0 +1,23 @@
+generator client {
+  provider             = "prisma-client-py"
+  recursive_type_depth = "5"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING" // postgresql url for example "postgres://user:pass@localhost:5432/database"
+}
+
+model bots {
+  id          BigInt @id
+  name        String
+  prefix      String
+  guild_count Int
+}
+
+model prefixes {
+  id       Int    @id @default(autoincrement())
+  bot_id   BigInt
+  guild_id BigInt
+  prefix   String
+}
