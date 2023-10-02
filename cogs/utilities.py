@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Optional, Self
 
 import discord
 import fast_colorthief
-import toml
 from aiohttp import FormData
 from colormap import rgb2hex
 from discord import app_commands, ui
@@ -44,9 +43,6 @@ def char_info_regex(char_info: dict[str, int], description: str) -> dict[str, in
     if key.search(description):
         char_info["keys"] = int(key.findall(description)[0])
     return char_info
-
-
-keys_bonus = toml.load("config.toml")["keys_bonus"]
 
 
 # hhttps://codepen.io/ifailatgithub/pen/mdrJdgb (outdated)

@@ -1,6 +1,15 @@
 {
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
   },
-  "python.formatting.provider": "none"
+  "isort.args": ["--profile", "black"],
+  "black-formatter.args": ["-S", "-l120"],
+  "Prettier-SQL.SQLFlavourOverride": "sqlite",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "files.eol": "\n", // unix line endings,
+  "files.insertFinalNewline": true // many applications expect a final blank line
 }

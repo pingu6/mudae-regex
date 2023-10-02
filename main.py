@@ -2,12 +2,14 @@
 import datetime
 import logging
 
+import aiofiles
 import aiohttp
+import asqlite
 import discord
 import starlight
 import toml
-from discord.ext import commands, tasks
-from prisma import Prisma
+from asqlite import Pool
+from discord.ext import commands
 
 from cogs import EXTENSIONS
 
@@ -25,7 +27,6 @@ class Bot(commands.Bot):
             strip_after_prefix=True,
             activity=discord.Game(name=f"{default_prefix}help, {default_prefix}invite"),
             help_command=starlight.MenuHelpCommand(
-                per_page=10,
                 accent_color=discord.Color.blue(),
                 command_attrs={"hidden": True},
                 pagination_buttons={
@@ -37,9 +38,9 @@ class Bot(commands.Bot):
                 },  # type: ignore
             ),
         )
-        self.db = Prisma()
-        self.config = config
+        self.pool: Pool
         self.session: aiohttp.ClientSession
+        self.config = config
         self.prefixes: dict[int, str] = {}
         self.default_prefix: str = default_prefix
         self.launch_time = datetime.datetime.now(datetime.timezone.utc)
@@ -51,30 +52,16 @@ class Bot(commands.Bot):
         await self.load_extension("jishaku")
         print("Loaded cogs")
         self.session = aiohttp.ClientSession(connector=aiohttp.TCPConnector())
-        await self.db.connect()
-        # self.insert_bot_info.start()
 
-    @tasks.loop(count=1)
-    async def insert_bot_info(self):
-        await self.wait_until_ready()
-        if not self.user:
-            return
-        await self.db.bots.upsert(
-            where={"id": self.user.id},
-            data={
-                "create": {
-                    "id": self.user.id,
-                    "name": self.user.name,
-                    "prefix": self.default_prefix,
-                    "guild_count": len(self.guilds),
-                },
-                "update": {
-                    "guild_count": len(self.guilds),
-                    "name": self.user.name,
-                    "prefix": self.default_prefix,
-                },
-            },
-        )
+        self.pool = await asqlite.create_pool('database.db')
+        async with self.pool.acquire() as conn, aiofiles.open('schema.sql') as fp:
+            await conn.executescript(await fp.read())
+            await conn.commit()
+
+    async def close(self):
+        await self.pool.close()
+        await self.session.close()
+        await super().close()
 
 
 # https://mystb.in/PoundJpgQuarter
@@ -82,26 +69,37 @@ async def get_prefix(bot: Bot, message: discord.Message):
     if not message.guild or not bot.user:  # check if dm
         return commands.when_mentioned_or(default_prefix)(bot, message)  # return default prefix
     try:
-        return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, default_prefix))(bot, message)
+        return commands.when_mentioned_or(bot.prefixes[message.guild.id])(bot, message)
 
     except KeyError:
-        # if it's not, pull from the database
-        prefix = await bot.db.prefixes.find_many(
-            where={"bot_id": bot.user.id, "guild_id": message.guild.id},
-        )
+        async with bot.pool.acquire() as conn:
+            cursor = await conn.execute(
+                "SELECT prefix FROM prefixes WHERE guild_id = ?",
+                (message.guild.id,),
+            )
+            prefix = await cursor.fetchone()
+            await conn.commit()
+
         if prefix:  # if it's in the database,
-            bot.prefixes.update({message.guild.id: prefix[0].prefix})  # cache it
+            bot.prefixes.update({message.guild.id: prefix['prefix']})  # cache it
             return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, default_prefix))(bot, message)
 
         else:  # if not in the database,
             # insert into the database
-            await bot.db.prefixes.create(
-                data={
-                    "bot_id": bot.user.id,
-                    "prefix": default_prefix,
-                    "guild_id": message.guild.id,
-                },
-            )
+            async with bot.pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO
+                        prefixes (guild_id, prefix)
+                    VALUES
+                        (?, ?)
+                    ON CONFLICT (guild_id) DO UPDATE
+                    SET
+                    prefix = excluded.prefix
+                    """,
+                    (message.guild.id, default_prefix),
+                )
+            await conn.commit()
             bot.prefixes.update({message.guild.id: default_prefix})  # after inserting, cache it
             return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, default_prefix))(bot, message)
 

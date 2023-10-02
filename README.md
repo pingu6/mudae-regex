@@ -3,15 +3,13 @@
 
   <a href="https://discord.gg/XjWcDVvuPt">
       <img src="https://discordapp.com/api/guilds/1050103286323216535/widget.png?style=banner2" alt="Discord Server"/>
-  </a>r2)
+  </a>
 
-</d
-
->
+</div>
 
 ---
 
-<p align="center">list splitter for mudae and more.
+<p align="center">List splitter for mudae and more.
     <br>
 </p>
 
@@ -26,8 +24,8 @@ There are two public instance of mudae regex because of [discord 100 server limi
 
 ## Todolist
 
-- [ ] Migrate from postgresql to sqlite for easier self hosting
-- [ ] Using raw sql instaed of prisam orm
+- [x] Migrate from postgresql to sqlite for easier self hosting
+- [x] Using raw sql instaed of prisam orm
 - [ ] Adding new command that calculate kakera react vales base on number of keys, player premium, bost kakera
 - [ ] Adding regex command for `$rl`
 - [ ] Breack down each command into separate file for better readability and modularity
@@ -52,35 +50,26 @@ The bot exclusively stores the server ID and server-specific bot prefix, automat
 
 3. Open powershell anywhere and clone the repo
 
-```bash
-git clone https://github.com/pingu6/mudae-regex.git
-```
+   ```bash
+   git clone https://github.com/pingu6/mudae-regex.git
+   ```
 
 4. Go to the repo directory `mudae-regex` and install the requirements
 
-```powershell
- cd mudae-regex & pip install -U -r requirements.txt
-```
+   ```powershell
+   cd mudae-regex & pip install -U -r requirements.txt
+   ```
 
-5. Rename `schema_example.prisma` to `schema.prisma` and add your postgresql url
+5. Rename `config_example.toml` to `config.toml` and fill it
 
-> **_tip:_** https://neovim.io/ is the best for editing config files
+   ```powershell
+   ren config_example.toml config.toml & notepad config.toml
+   ```
 
-```powershell
-ren schema_example.prisma schema.prisma & notepad schema.prisma
-```
+6. Run `main.py` file
 
-6. run [`prisma db push`](https://prisma-client-py.readthedocs.io/en/stable/#generating-prisma-client-python)
-7. Rename `config_example.toml` to `config.toml` and fill it
+   ```powershell
+   py main.py
+   ```
 
-```powershell
-ren config_example.toml config.toml & notepad config.toml
-```
-
-8. Run `main.py` file
-
-```powershell
-py main.py
-```
-
-9. Run `[bot prefix]jsk sync` to sync all the slash and context menu commands
+7. Run `[bot prefix]jsk sync` to sync all the slash and context menu commands

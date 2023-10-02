@@ -16,40 +16,30 @@ class Prefix(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: Guild):
-        await self.bot.db.prefixes.create_many(
-            data=[{'bot_id': self.bot.user.id, 'guild_id': guild.id, 'prefix': self.bot.default_prefix}],
-        )
-        self.bot.prefixes.pop(guild.id, None)
-        await self.bot.db.bots.update(
-            where={
-                'id': self.bot.user.id,
-            },
-            data={
-                'guild_count': {
-                    'increment': 1,
-                }
-            },
-        )
+        self.bot.prefixes[guild.id] = self.bot.default_prefix
+        async with self.bot.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO
+                    prefixes (guild_id, prefix)
+                VALUES
+                    (?, ?)
+                ON CONFLICT (guild_id) DO UPDATE
+                SET
+                    prefix = excluded.prefix
+                """,
+                (guild.id, self.bot.default_prefix),
+            )
+        await conn.commit()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: Guild):
-        await self.bot.db.prefixes.delete_many(
-            where={
-                'bot_id': self.bot.user.id,
-                'guild_id': guild.id,
-            },
-        )
         self.bot.prefixes[guild.id] = self.bot.default_prefix
-        await self.bot.db.bots.update(
-            where={
-                'id': self.bot.user.id,
-            },
-            data={
-                'guild_count': {
-                    'decrement': 1,
-                }
-            },
-        )
+        async with self.bot.pool.acquire() as conn:
+            await conn.execute(
+                "DELETE FROM prefixes WHERE serverid = guild_id",
+                (guild.id,),
+            )
 
     @commands.hybrid_command(name='prefix')
     @commands.has_permissions(administrator=True)
@@ -58,15 +48,20 @@ class Prefix(commands.Cog):
         """change bot prefix"""
         if not ctx.guild:
             return
-        await self.bot.db.prefixes.update_many(
-            where={
-                'bot_id': self.bot.user.id,
-                'guild_id': ctx.guild.id,
-            },
-            data={
-                'prefix': prefix,
-            },
-        )
+
+        async with self.bot.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO
+                    prefixes (guild_id, prefix)
+                VALUES
+                    (?, ?)
+                ON CONFLICT (guild_id) DO UPDATE
+                SET
+                    prefix = excluded.prefix
+                """,
+                (ctx.guild.id, prefix),
+            )
         self.bot.prefixes[ctx.guild.id] = prefix
         await ctx.send(f'prefix changed to `{prefix}`')
 

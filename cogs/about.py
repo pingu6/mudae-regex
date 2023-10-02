@@ -3,51 +3,22 @@ from __future__ import annotations
 import datetime
 import itertools
 import platform
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
-import asyncio
-from io import BytesIO
+
 import discord
 import psutil
 import pygit2
 from discord import utils
 from discord.ext import commands
-from PIL import Image, ImageDraw, ImageFont
 
 if TYPE_CHECKING:
     from main import Bot
-
-
-@dataclass
-class BotData:
-    name: str
-    image: bytes
-    guild_count: int
 
 
 class About(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.process = psutil.Process()
-
-    # https://gist.github.com/Gorialis/e89482310d74a90a946b44cf34009e88
-    @staticmethod
-    def processing(bots: list[BotData]) -> BytesIO:
-        with Image.new('RGBA', (250, len(bots) * 48)) as blank:
-            draw = ImageDraw.Draw(blank)
-            font = ImageFont.truetype('Assets/fonts/JetBrainsMono/JetBrainsMono-Regular.ttf', size=12)
-            for index, bot in enumerate(bots):
-                with Image.open(BytesIO(bot.image)) as image:
-                    blank.paste(image.resize((48, 48)), (0, index * 48))
-                    draw.text((52, 24 + index * 48), f"{bot.name} . guild count: {bot.guild_count}", font=font)
-                    if index + 1 < len(bots):
-                        draw.line((0, 47 + index * 48, 250, 47 + index * 48), fill="#000000", width=1)
-
-            final_buffer = BytesIO()
-            blank.save(final_buffer, "png")
-            final_buffer.seek(0)
-
-            return final_buffer
 
     # This code is licensed MPL v2 from https://github.com/Rapptz/RoboDanny
     # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/stats.py#L260-L304
@@ -128,42 +99,20 @@ class About(commands.Cog):
 
     @commands.hybrid_command(name='invite')
     async def invite(self, ctx: commands.Context[Bot]):
-        "Generate invite link for all Mudae Regex instances"
-        async with ctx.typing():
-            rows = await ctx.bot.db.bots.find_many(
-                order={
-                    'guild_count': 'desc',
-                }
-            )
-            bots = [
-                BotData(
-                    row.name,
-                    await ctx.bot.get_user(row.id).display_avatar.read(),
-                    row.guild_count,
-                )
-                for row in rows
-            ]
-            final_buffer = await asyncio.to_thread(self.processing, bots)
-            image = discord.File(filename="image.png", fp=final_buffer)
-            embed = discord.Embed(color=discord.Color.brand_red())
-            embed.set_image(url=f"attachment://{image.filename}")
-
-            permission_names = (
-                'send_messages',
-                'send_messages_in_threads',
-                'read_messages',
-                'read_message_history',
-                'embed_links',
-                'add_reactions',
-                'attach_files',
-                'external_emojis',
-                'view_channel',
-            )
-            permissions = discord.Permissions(**dict.fromkeys(permission_names, True))
-            view = discord.ui.View()
-            for row in rows:
-                view.add_item(discord.ui.Button(label=row.name, url=utils.oauth_url(row.id, permissions=permissions)))
-            await ctx.send(embed=embed, view=view, file=image)
+        "Generate aninvite link for this instance"
+        permission_names = (
+            'send_messages',
+            'send_messages_in_threads',
+            'read_messages',
+            'read_message_history',
+            'embed_links',
+            'add_reactions',
+            'attach_files',
+            'external_emojis',
+            'view_channel',
+        )
+        permissions = discord.Permissions(**dict.fromkeys(permission_names, True))
+        await ctx.send(utils.oauth_url(ctx.bot.user.id, permissions=permissions))
 
 
 async def setup(bot: commands.Bot):
