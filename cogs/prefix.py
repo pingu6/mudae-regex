@@ -30,16 +30,17 @@ class Prefix(commands.Cog):
                 """,
                 (guild.id, self.bot.default_prefix),
             )
-        await conn.commit()
+            await conn.commit()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: Guild):
         self.bot.prefixes[guild.id] = self.bot.default_prefix
         async with self.bot.pool.acquire() as conn:
             await conn.execute(
-                "DELETE FROM prefixes WHERE serverid = guild_id",
+                "DELETE FROM prefixes WHERE guild_id = guild_id",
                 (guild.id,),
             )
+            await conn.commit()
 
     @commands.hybrid_command(name='prefix')
     @commands.has_permissions(administrator=True)
@@ -62,6 +63,7 @@ class Prefix(commands.Cog):
                 """,
                 (ctx.guild.id, prefix),
             )
+            await conn.commit()
         self.bot.prefixes[ctx.guild.id] = prefix
         await ctx.send(f'prefix changed to `{prefix}`')
 
