@@ -429,10 +429,8 @@ class Dropdown(discord.ui.Select[MyMenuPages]):
         for option in self.options:
             if option.value == self.values[0]:
                 option.default = True
-                break
-
-        if self.embed.author:
-            self.embed.set_footer(text=f"$ec {self.embed.author.name} $ {self.values[0]}")
+            else:
+                option.default = False
 
         await interaction.response.edit_message(embed=self.embed, view=self.view)
 
