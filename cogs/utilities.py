@@ -27,9 +27,8 @@ font = ImageFont.truetype(
 )
 
 
-def get_images_url(text: str) -> list[str] | None:
-    if urls := re.findall(r"https?://.*?\.(?:jpg|gif|png|webp)", text):
-        return urls
+def get_images_url(text: str) -> list[str]:
+    return re.findall(r"https?://.*?\.(?:jpg|gif|png|webp)", text)
 
 
 def char_info_regex(char_info: dict[str, int], description: str) -> dict[str, int]:
@@ -246,16 +245,16 @@ class Utilities(commands.Cog):
     ):
         """get most 25 dominant colors in an image using median cut algorithm"""
 
-        urls = is_image_url(args) if args else None
+        urls = get_images_url(args) if args else None
         reply: discord.MessageReference | discord.DeletedReferencedMessage | None = ctx.message.reference
         if reply and isinstance(reply.resolved, discord.Message):
-            urls = is_image_url(reply.resolved.content)
+            urls = get_images_url(reply.resolved.content)
             if reply.resolved.attachments:
                 urls = [attachment.url for attachment in reply.resolved.attachments]
             elif reply.resolved.embeds and reply.resolved.embeds[0].image:
                 urls = [reply.resolved.embeds[0].image.url]
             elif reply.resolved.embeds and reply.resolved.embeds[0].description:
-                urls = is_image_url(reply.resolved.embeds[0].description)
+                urls = get_images_url(reply.resolved.embeds[0].description)
 
         elif attachments:
             urls = [attachment.url for attachment in attachments]
