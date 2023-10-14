@@ -183,7 +183,7 @@ class Utilities(commands.Cog):
         checked_attachments = [
             attachment
             for attachment in attachments
-            if attachment.size <= 3e7 and attachment.url.lower().endswith(("png", "jpeg", "jpg", "gif", "webp"))
+            if attachment.size <= 3e7 and attachment.filename.endswith(("png", "jpeg", "jpg", "gif", "webp"))
         ]
         if not checked_attachments:
             raise commands.MissingRequiredArgument(
