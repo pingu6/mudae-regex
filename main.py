@@ -25,7 +25,7 @@ class Bot(commands.Bot):
             intents=discord.Intents.all(),
             case_insensitive=True,
             strip_after_prefix=True,
-            activity=discord.Game(name=f"{default_prefix}help, {default_prefix}invite"),
+            activity=discord.Game(name=f"{default_prefix}help"),
             help_command=starlight.MenuHelpCommand(
                 accent_color=discord.Color.blue(),
                 command_attrs={"hidden": True},
