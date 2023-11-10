@@ -99,7 +99,7 @@ async def get_prefix(bot: Bot, message: discord.Message):
                     """,
                     (message.guild.id, default_prefix),
                 )
-            await conn.commit()
+                await conn.commit()
             bot.prefixes.update({message.guild.id: default_prefix})  # after inserting, cache it
             return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, default_prefix))(bot, message)
 
