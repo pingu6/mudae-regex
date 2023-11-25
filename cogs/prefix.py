@@ -37,7 +37,7 @@ class Prefix(commands.Cog):
         self.bot.prefixes[guild.id] = self.bot.default_prefix
         async with self.bot.pool.acquire() as conn:
             await conn.execute(
-                "DELETE FROM prefixes WHERE guild_id = guild_id",
+                "DELETE FROM prefixes WHERE guild_id = ?",
                 (guild.id,),
             )
             await conn.commit()
