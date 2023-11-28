@@ -267,7 +267,7 @@ class Utilities(commands.Cog):
                 if response.status == 200 and response.url.name != "removed.png":
                     return (url, BytesIO(await response.read()))
 
-        entries: list[tuple[str, BytesIO]] = await asyncio.gather(*[get(url) for url in urls if url])
+        entries: list[tuple[str, BytesIO]] = [i for i in await asyncio.gather(*[get(url) for url in urls if url]) if i]
         if not entries:
             return await ctx.send("invalid url")
         formatter = MySource(entries, 1)
