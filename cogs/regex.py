@@ -45,6 +45,7 @@ regex_pattern = re.compile(
 
 
 def regex(content: str) -> list[str]:
+    content = re.sub(r"\*.*\*\n\n", "", content, flags=re.M | re.DOTALL)
     encoded = encode_exclusions(content.replace("*", ""))
     post_regex = regex_pattern.sub("", encoded)
     decoded = decode_exclusions(post_regex)
