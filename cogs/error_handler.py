@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 
 class CommandErrorHandler(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context[Bot], error: commands.CommandError):
+    async def on_command_error(self, ctx: commands.Context[Bot], error: commands.CommandError) -> None:
         """The event triggered when an error is raised while invoking a command.
         Parameters
         ------------
@@ -27,7 +27,7 @@ class CommandErrorHandler(commands.Cog):
         """
 
         # This prevents any commands with local handlers being handled here in on_command_error.
-        if hasattr(ctx.command, 'on_error'):
+        if hasattr(ctx.command, "on_error"):
             return
 
         # This prevents any cogs with an overwritten cog_command_error being handled here.
@@ -37,27 +37,27 @@ class CommandErrorHandler(commands.Cog):
 
         # Allows us to check for original exceptions raised and sent to CommandInvokeError.
         # If nothing is found. We keep the exception passed to on_command_error.
-        error = getattr(error, 'original', error)
+        error = getattr(error, "original", error)
 
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, commands.CommandNotFound):
             return
 
         if isinstance(error, commands.DisabledCommand):
-            await ctx.send(f'{ctx.command} has been disabled.')
+            await ctx.send(f"{ctx.command} has been disabled.")
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
-                await ctx.author.send(f'{ctx.command} can not be used in Private Messages.')
+                await ctx.author.send(f"{ctx.command} can not be used in Private Messages.")
             except discord.HTTPException:
                 pass
         elif isinstance(error, commands.MissingPermissions):
             try:
                 if len(error.missing_permissions) > 1:
-                    missing = ', '.join([i for i in error.missing_permissions])
+                    missing = ", ".join(list(error.missing_permissions))
                 else:
                     missing = error.missing_permissions[0]
-                await ctx.send(f'Command restricted to admins (Discord permissions: {missing})')
+                await ctx.send(f"Command restricted to admins (Discord permissions: {missing})")
             except discord.HTTPException:
                 pass
 
@@ -67,14 +67,14 @@ class CommandErrorHandler(commands.Cog):
         elif isinstance(error, commands.NotOwner):
             await ctx.send("https://http.cat/403")
 
-        elif isinstance(error, commands.BadArgument) or isinstance(error, commands.CommandOnCooldown):
+        elif isinstance(error, (commands.BadArgument, commands.CommandOnCooldown)):
             await ctx.send(str(error))
 
         else:
             # All other Errors not returned come here. And we can just print the default TraceBack.
-            print(f'Ignoring exception in command {ctx.command}:', file=sys.stderr)
+            print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
-async def setup(bot: Bot):
+async def setup(bot: Bot) -> None:
     await bot.add_cog(CommandErrorHandler(bot))

@@ -6,7 +6,7 @@ import aiofiles
 import aiohttp
 import asqlite
 import discord
-import starlight
+import starlight  # type: ignore
 import toml
 from asqlite import Pool
 from discord.ext import commands
@@ -19,7 +19,7 @@ handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w"
 
 
 class Bot(commands.Bot):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             command_prefix=get_prefix,
             intents=discord.Intents.all(),
@@ -45,27 +45,27 @@ class Bot(commands.Bot):
         self.default_prefix: str = default_prefix
         self.launch_time = datetime.datetime.now(datetime.timezone.utc)
 
-    async def setup_hook(self):  # overwriting a handler
-        print(f"\033[31mLogged in as {self.user}\033[39m")
+    async def setup_hook(self) -> None:
+        print(f"Logged on as {self.user} (ID: {self.user.id})")  # type: ignore
         for extension in EXTENSIONS:
             await self.load_extension(extension)
         await self.load_extension("jishaku")
         print("Loaded cogs")
         self.session = aiohttp.ClientSession(connector=aiohttp.TCPConnector())
 
-        self.pool = await asqlite.create_pool('database.db')
-        async with self.pool.acquire() as conn, aiofiles.open('schema.sql') as fp:
+        self.pool = await asqlite.create_pool("database.db")
+        async with self.pool.acquire() as conn, aiofiles.open("schema.sql") as fp:
             await conn.executescript(await fp.read())
             await conn.commit()
 
-    async def close(self):
+    async def close(self) -> None:
         await self.pool.close()
         await self.session.close()
         await super().close()
 
 
 # https://mystb.in/PoundJpgQuarter
-async def get_prefix(bot: Bot, message: discord.Message):
+async def get_prefix(bot: Bot, message: discord.Message) -> list[str]:
     if not message.guild or not bot.user:  # check if dm
         return commands.when_mentioned_or(default_prefix)(bot, message)  # return default prefix
     try:
@@ -81,7 +81,7 @@ async def get_prefix(bot: Bot, message: discord.Message):
             await conn.commit()
 
         if prefix:  # if it's in the database,
-            bot.prefixes.update({message.guild.id: prefix['prefix']})  # cache it
+            bot.prefixes.update({message.guild.id: prefix["prefix"]})  # cache it
             return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, default_prefix))(bot, message)
 
         else:  # if not in the database,

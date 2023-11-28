@@ -1,4 +1,3 @@
-# cogs / char_value.py
 from __future__ import annotations
 
 import asyncio
@@ -6,15 +5,15 @@ import inspect
 import math
 import re
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Self
+from typing import TYPE_CHECKING, Self
 
 import discord
-import fast_colorthief
+import fast_colorthief  # type: ignore
 from aiohttp import FormData
-from colormap import rgb2hex
+from colormap import rgb2hex  # type: ignore
 from discord import app_commands, ui
 from discord.ext import commands, menus
-from discord.ext.commands import Greedy
+from discord.ext.commands import Greedy  # type: ignore  # noqa: TCH002
 from PIL import Image, ImageDraw, ImageFont
 
 if TYPE_CHECKING:
@@ -47,7 +46,7 @@ def char_info_regex(char_info: dict[str, int], description: str) -> dict[str, in
 # hhttps://codepen.io/ifailatgithub/pen/mdrJdgb (outdated)
 # https://codepen.io/xr_/pen/oNaOxxB (updated fork)
 def get_value(claim_rank: int, like_rank: int, claimed_chars: int, keys: int) -> discord.Embed:
-    def keys_multiplier():
+    def keys_multiplier() -> float:
         if keys < 1:
             return 1
         elif 1 <= keys < 3:
@@ -90,8 +89,8 @@ def get_value(claim_rank: int, like_rank: int, claimed_chars: int, keys: int) ->
     return embed
 
 
-def processing(image: BytesIO):
-    palette = [rgb2hex(r, g, b) for r, g, b in fast_colorthief.get_palette(image, color_count=25, quality=1)]
+def processing(image: BytesIO) -> tuple[list[str], BytesIO]:
+    palette: list[str] = [rgb2hex(r, g, b) for r, g, b in fast_colorthief.get_palette(image, color_count=25, quality=1)]  # type: ignore
 
     n = len(palette)
     cols = 4
@@ -111,7 +110,7 @@ def processing(image: BytesIO):
         x1 = x0 + (cell_width / 4)
 
         a.rectangle((x0, y0, x1, y1), fill=color, outline="black")
-        a.text((x1 + 1, y0 + 10), color, fill="white", font=font)
+        a.text((x1 + 1, y0 + 10), color, fill="white", font=font)  # type: ignore
     palette_png = BytesIO()
     i.save(palette_png, "png")
     return palette, palette_png
@@ -124,7 +123,7 @@ class ImgChestFlags(commands.FlagConverter):
 
 
 class Utilities(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         bot.tree.add_command(
             app_commands.ContextMenu(
@@ -133,7 +132,7 @@ class Utilities(commands.Cog):
             )
         )
 
-    async def KakeraValueCalculatorCallback(self, interaction: discord.Interaction, message: discord.Message):
+    async def KakeraValueCalculatorCallback(self, interaction: discord.Interaction, message: discord.Message) -> None:
         if message.embeds and message.embeds[0].description:
             char_info = {"claim_rank": 1, "like_rank": 1, "claimed_chars": 0, "keys": 0}
             embed = get_value(**char_info_regex(char_info, message.embeds[0].description))
@@ -149,7 +148,7 @@ class Utilities(commands.Cog):
         like_rank: int = 1,
         claimed_chars: int = 0,
         keys: int = 0,
-    ):
+    ) -> None:
         """Calculate Kakera Value"""
         char_info = {
             "claim_rank": claim_rank,
@@ -173,7 +172,7 @@ class Utilities(commands.Cog):
 
     @commands.command(aliases=["upload"])
     @commands.cooldown(60, 60)
-    async def imgchest(self, ctx: commands.Context[Bot], attachments: Greedy[discord.Attachment]):
+    async def imgchest(self, ctx: commands.Context[Bot], attachments: Greedy[discord.Attachment]) -> None:
         """Upload images to <https://imgchest.com>
 
         __Notes__
@@ -190,7 +189,8 @@ class Utilities(commands.Cog):
                 commands.parameters.Parameter(name="attachments", kind=inspect.Parameter.POSITIONAL_ONLY)
             )
         elif sum(attachment.size for attachment in checked_attachments) > 99e6:
-            return await ctx.send("Total attachments size must be less than 99MB")
+            await ctx.send("Total attachments size must be less than 99MB")
+            return
 
         data = FormData()
         data.add_field("anonymous", "1")
@@ -209,7 +209,8 @@ class Utilities(commands.Cog):
             data=data,
         ) as response:
             if response.status != 200:
-                return await ctx.send(await response.text())
+                await ctx.send(await response.text())
+                return
 
             json = await response.json()
 
@@ -220,14 +221,14 @@ class Utilities(commands.Cog):
         )
 
     @commands.command()
-    async def limit(self, ctx: commands.Context[Bot], limit: int, *, args: str):
+    async def limit(self, ctx: commands.Context[Bot], limit: int, *, args: str) -> None:
         """limit the number of given characters"""
         if args:
             characters = [i.strip() for i in args.split("$")]
             await ctx.send(f"```\n{' $'.join(characters[:limit])}\n```")
 
     @commands.hybrid_command(name="page")
-    async def page(self, ctx: commands.Context[Bot], from_page: int, to_page: int):
+    async def page(self, ctx: commands.Context[Bot], from_page: int, to_page: int) -> None:
         """Generate a list of pages"""
         msg = " ".join([str(i) for i in range(from_page, to_page + 1)])
         if len(msg) > 1995:
@@ -241,8 +242,8 @@ class Utilities(commands.Cog):
         ctx: commands.Context[Bot],
         attachments: Greedy[discord.Attachment],
         *,
-        args: Optional[str],
-    ):
+        args: str | None,
+    ) -> None:
         """get most 25 dominant colors in an image using median cut algorithm"""
 
         urls = get_images_url(args) if args else None
@@ -260,16 +261,19 @@ class Utilities(commands.Cog):
             urls = [attachment.url for attachment in attachments]
 
         if not urls:
-            return await ctx.send("no image found")
+            await ctx.send("no image found")
+            return
 
-        async def get(url: str):
+        async def get(url: str) -> None | tuple[str, BytesIO]:
             async with ctx.bot.session.get(url) as response:
                 if response.status == 200 and response.url.name != "removed.png":
                     return (url, BytesIO(await response.read()))
 
         entries: list[tuple[str, BytesIO]] = [i for i in await asyncio.gather(*[get(url) for url in urls if url]) if i]
         if not entries:
-            return await ctx.send("invalid url")
+            await ctx.send("invalid url")
+            return
+
         formatter = MySource(entries, 1)
         menu = MyMenuPages(formatter)
         await menu.start(ctx)
@@ -295,13 +299,13 @@ class CharInfoModal(ui.Modal, title="Update Values"):
 
 
 class CharInfoView(ui.View):
-    def __init__(self, char_info: dict[str, int]):
+    def __init__(self, char_info: dict[str, int]) -> None:
         self.char_info = char_info
         self.message: discord.InteractionMessage | discord.Message
         super().__init__()
 
     @ui.button(label="Update Values", style=discord.ButtonStyle.secondary)
-    async def update_values(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def update_values(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         modal = CharInfoModal(self.char_info)
         await interaction.response.send_modal(modal)
         timed_out = await modal.wait()
@@ -318,7 +322,7 @@ class CharInfoView(ui.View):
         await interaction.edit_original_response(embed=get_value(**self.char_info))
 
     @ui.button(label="Quit", style=discord.ButtonStyle.red)
-    async def Quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def Quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         await interaction.response.defer()
         await interaction.delete_original_response()
         self.stop()
@@ -334,7 +338,7 @@ class CharInfoView(ui.View):
 
 # https://gist.github.com/InterStella0/454cc51e05e60e63b81ea2e8490ef140
 class MyMenuPages(ui.View, menus.MenuPages):
-    def __init__(self, source: menus.ListPageSource):
+    def __init__(self, source: menus.ListPageSource) -> None:
         super().__init__(timeout=180)
         self._source = source
         self.current_page = 0
@@ -348,21 +352,21 @@ class MyMenuPages(ui.View, menus.MenuPages):
         *,
         channel: discord.abc.Messageable | None = None,
         wait: bool = False,
-    ):
+    ) -> None:
         # We wont be using wait/channel, you can implement them yourself. This is to match the MenuPages signature.
-        await self._source._prepare_once()
+        await self._source._prepare_once()  # type: ignore
         self.ctx = ctx
-        self.message: discord.Message = await self.send_initial_message(ctx, ctx.channel)
+        self.message: discord.Message = await self.send_initial_message(ctx, ctx.channel)  # type: ignore
 
     async def _get_kwargs_from_page(self, page: int) -> dict[str, str | discord.Embed | discord.ui.View | None]:
         """This method calls ListPageSource.format_page class"""
-        value: dict[str, str | discord.Embed | discord.ui.View | None] = await super()._get_kwargs_from_page(page)
+        value: dict[str, str | discord.Embed | discord.ui.View | None] = await super()._get_kwargs_from_page(page)  # type: ignore
         if "view" not in value:
             value.update({"view": self})
         return value
 
     @ui.button(style=discord.ButtonStyle.secondary, label="Colors", row=2)
-    async def colors(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def colors(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         self.palette_png.seek(0)
         await interaction.response.send_message(
             file=discord.File(fp=self.palette_png, filename="Colors.png"),
@@ -370,32 +374,32 @@ class MyMenuPages(ui.View, menus.MenuPages):
         )
 
     @ui.button(emoji="<:RemLeft:1052054214634913882>", style=discord.ButtonStyle.secondary, row=2)
-    async def before_page(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def before_page(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         await interaction.response.defer()
         if self.current_page == 0:
             self.current_page = self._source.get_max_pages()
-        await self.show_checked_page(self.current_page - 1)
+        await self.show_checked_page(self.current_page - 1)  # type: ignore
 
     @ui.button(emoji="<:RamRight:1052054203901673482>", style=discord.ButtonStyle.secondary, row=2)
-    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         await interaction.response.defer()
         if self.current_page == self._source.get_max_pages() - 1:
             self.current_page = -1
-        await self.show_checked_page(self.current_page + 1)
+        await self.show_checked_page(self.current_page + 1)  # type: ignore
 
     @ui.button(style=discord.ButtonStyle.red, label="Quit", row=2)
-    async def quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         await interaction.response.defer()
         await interaction.delete_original_response()
         self.stop()
 
 
 class MySource(menus.ListPageSource):
-    def __init__(self, entries: list[tuple[str, BytesIO]], per_page: int):
+    def __init__(self, entries: list[tuple[str, BytesIO]], per_page: int) -> None:
         super().__init__(entries, per_page=per_page)
         self.Dropdown = None
 
-    async def format_page(self, menu: MyMenuPages, page: tuple[str, BytesIO]):
+    async def format_page(self, menu: MyMenuPages, page: tuple[str, BytesIO]) -> discord.Embed:
         url, image_bytes = page
         colors, palette_png = await asyncio.to_thread(processing, image_bytes)
         embed = discord.Embed(color=discord.Color.dark_embed())
@@ -416,14 +420,14 @@ class MySource(menus.ListPageSource):
 
 
 class Dropdown(discord.ui.Select[MyMenuPages]):
-    def __init__(self, options: list[discord.SelectOption], embed: discord.Embed):
+    def __init__(self, options: list[discord.SelectOption], embed: discord.Embed) -> None:
         self.embed = embed
         super().__init__(
             placeholder="Choose a color...",
             options=options,
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         self.embed.color = discord.Color.from_str(self.values[0])
         for option in self.options:
             if option.value == self.values[0]:
@@ -434,5 +438,5 @@ class Dropdown(discord.ui.Select[MyMenuPages]):
         await interaction.response.edit_message(embed=self.embed, view=self.view)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Utilities(bot))

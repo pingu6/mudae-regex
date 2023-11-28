@@ -1,9 +1,8 @@
-# cogs / regex.py
 from __future__ import annotations
 
 import inspect
 import re
-from typing import TYPE_CHECKING, Callable, Optional, Self, Sized
+from typing import TYPE_CHECKING, Callable, Self, Sized
 
 import discord
 import toml
@@ -18,7 +17,7 @@ tracks: dict[int, list[str]] = {}
 # a list of chracters that have '-' in there name, for exmple:
 # 'Sky Striker Ace - Roze'
 #                 ^
-exclusion_list: list[str] = toml.load("config.toml")["exclusion_list"]
+EXCLUSION: list[str] = toml.load("config.toml")["exclusion_list"]
 
 
 # +2 for ' $'
@@ -27,33 +26,33 @@ def get_len(item: Sized) -> int:
 
 
 def encode_exclusions(text: str) -> str:
-    for i in exclusion_list:
-        text = text.replace(i, i.replace('-', '&45;'))
+    for i in EXCLUSION:
+        text = text.replace(i, i.replace("-", "&45;"))
     return text
 
 
 def decode_exclusions(text: str) -> str:
-    for i in exclusion_list:
+    for i in EXCLUSION:
         text = text.replace(i.replace("-", "&45;"), i)
     return text
 
 
 regex_pattern = re.compile(
-    r'^#\d+ - | [=\-·\|💞🚫] .*|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 15 value: \d+|'
-    r'AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+',
+    r"^#\d+ - | [=\-·\|💞🚫] .*|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 1\d value: \d+|"
+    r"AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
 
 def regex(content: str) -> list[str]:
-    encoded = encode_exclusions(content.replace('*', ''))
-    post_regex = regex_pattern.sub('', encoded)
+    encoded = encode_exclusions(content.replace("*", ""))
+    post_regex = regex_pattern.sub("", encoded)
     decoded = decode_exclusions(post_regex)
-    return [i.strip() for i in decoded.splitlines() if i != '']
+    return [i.strip() for i in decoded.splitlines() if i != ""]
 
 
 def remove_sl_regex(content: str) -> list[str]:
-    soulmate_list: list[str] = [line for line in content.splitlines() if re.search(r'\(Soulkeys: (\*\*)?\d{2,}', line)]
+    soulmate_list: list[str] = [line for line in content.splitlines() if re.search(r"\(Soulkeys: (\*\*)?\d{2,}", line)]
     return regex("\n".join(soulmate_list))
 
 
@@ -66,14 +65,15 @@ def dl_regex(content: str) -> list[str]:
         r"\d+ disabled \([\d$whag ,]+\)|.+\(\$toggleirl\)|.+\(\$togglewestern\)| ⚠ ",
         "",
         content.replace("*", ""),
-        re.M,
+        flags=re.M,
     )
     dl = re.findall(r".+(?= \()", dl, re.M)
     return list(filter(None, dl))
 
 
 clean_notes_pattern = re.compile(
-    r"^#\d+ - | ? 💞 => .+?(?= \|)| 🚫 \$.*| \· \(\$.*|[\u200b]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 15 value: \d+|"
+    r"^#\d+ - | ? 💞 => .+?(?= \|)| 🚫 \$.*| \· \(\$.*|[\u200b]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 15"
+    r" value: \d+|"
     r"AVG: \d+||Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
@@ -106,8 +106,8 @@ def image_regex(content: str) -> list[str]:
 
 
 clean_ec_pattern = re.compile(
-    r'^#\d+ - |\s+?[=\-·\|💞🚫].+?(?= \(#)|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)|Top 15 value: \d+|'
-    r'AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+',
+    r"^#\d+ - |\s+?[=\-·\|💞🚫].+?(?= \(#)|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)|Top 15 value: \d+|"
+    r"AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
@@ -126,13 +126,14 @@ def ec_regex(content: str) -> list[str]:
 
 
 class Regex(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.bot.tree.add_command(app_commands.ContextMenu(name="regex", callback=self.context_menu_callback))
 
-    async def context_menu_callback(self, interaction: discord.Interaction, message: discord.Message):
+    async def context_menu_callback(self, interaction: discord.Interaction, message: discord.Message) -> None:
         if message.id in tracks:
-            return await interaction.response.send_message("that message has already been replied to", ephemeral=True)
+            await interaction.response.send_message("that message has already been replied to", ephemeral=True)
+            return
         if message.embeds and message.embeds[0].description:
             tracks.update({message.id: [message.embeds[0].description]})
             view = RowButtons(message.id, regex_type=regex)
@@ -140,18 +141,13 @@ class Regex(commands.Cog):
             view.message = await interaction.original_response()
 
     @commands.Cog.listener()
-    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
         embeds = after.embeds
-        if (
-            before.id in tracks.keys()
-            and embeds
-            and embeds[0].description
-            and embeds[0].description not in tracks[before.id]
-        ):
+        if before.id in tracks and embeds and embeds[0].description and embeds[0].description not in tracks[before.id]:
             tracks[before.id].append(embeds[0].description)
 
     @commands.group(invoke_without_command=True)
-    async def regex(self, ctx: commands.Context[Bot], *, characters: Optional[str]):
+    async def regex(self, ctx: commands.Context[Bot], *, characters: str | None) -> None:
         """
         Generate a `$` separated list of characters for use with other mudae commands.
         Can be used by replying to a mudae embed or directly passing in a list of characters.
@@ -163,6 +159,7 @@ class Regex(commands.Cog):
         Syntax: `regex <character list>`
         * One character per line (ideally copied from mudae)
         """
+
         reply: discord.MessageReference | discord.DeletedReferencedMessage | None = ctx.message.reference
         if (
             reply
@@ -172,7 +169,8 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             if msg_id in tracks:
-                return await ctx.reply("that message has already been replied to")
+                await ctx.reply("that message has already been replied to")
+                return
             tracks.update({msg_id: [reply.resolved.embeds[0].description]})
             view = RowButtons(msg_id, regex_type=regex)
             view.message = await ctx.send(view=view)
@@ -186,7 +184,7 @@ class Regex(commands.Cog):
             await ctx.send(f"Total number of characters: {count}\n```\n{characters}\n```")
 
     @regex.command()
-    async def pin(self, ctx: commands.Context[Bot], *, pins: Optional[str]):
+    async def pin(self, ctx: commands.Context[Bot], *, pins: str | None) -> None:
         """Generate a list of pins separated by `$`"""
         reply: discord.MessageReference | discord.DeletedReferencedMessage | None = ctx.message.reference
         if reply and isinstance(reply.resolved, discord.Message) and not reply.resolved.embeds:
@@ -200,7 +198,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=pin_regex)
             view.message = await ctx.send(view=view)
@@ -210,7 +208,7 @@ class Regex(commands.Cog):
             await ctx.send(" $".join(pin_regex(pins)))
 
     @regex.command()
-    async def note(self, ctx: commands.Context[Bot], *, notes: Optional[str]):
+    async def note(self, ctx: commands.Context[Bot], *, notes: str | None) -> None:
         """
         Generate a list of $n commands that can be used to duplicate or backup notes
         """
@@ -223,7 +221,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=note_regex)
             view.message = await ctx.send(view=view)
@@ -234,7 +232,7 @@ class Regex(commands.Cog):
             await ctx.send(notes)
 
     @regex.command()
-    async def ec(self, ctx: commands.Context[Bot], *, content: Optional[str]):
+    async def ec(self, ctx: commands.Context[Bot], *, content: str | None) -> None:
         """
         Generate a list of $n commands that can be used to duplicate or backup notes
         """
@@ -247,7 +245,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=ec_regex)
             view.message = await ctx.send(view=view)
@@ -258,7 +256,7 @@ class Regex(commands.Cog):
             await ctx.send(content)
 
     @regex.command()
-    async def wrsl(self, ctx: commands.Context[Bot], *, characters: Optional[str]):
+    async def wrsl(self, ctx: commands.Context[Bot], *, characters: str | None) -> None:
         """
         Generate a list of $n commands that can be used to duplicate or backup notes
         """
@@ -271,7 +269,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=remove_sl_regex)
             view.message = await ctx.send(view=view)
@@ -280,12 +278,13 @@ class Regex(commands.Cog):
                 raise commands.BadArgument("Syntax: `regex sl <characters>`")
             characters = " $".join(remove_sl_regex(characters))
             if not characters:
-                return await ctx.send("```````")
+                await ctx.send("```````")
+                return
             count = len(characters.split("$"))
             await ctx.send(f"Total number of characters: {count}\n```\n{characters}\n```")
 
     @regex.command()
-    async def ail(self, ctx: commands.Context[Bot], *, ail: Optional[str]):
+    async def ail(self, ctx: commands.Context[Bot], *, ail: str | None) -> None:
         """
         Generate a list of $ai commands that can be used to copy or backup custom images
         """
@@ -298,7 +297,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=image_regex)
             view.message = await ctx.send(view=view)
@@ -309,7 +308,7 @@ class Regex(commands.Cog):
             await ctx.send(ail)
 
     @regex.command()
-    async def dl(self, ctx: commands.Context[Bot], *, bundles: Optional[str]):
+    async def dl(self, ctx: commands.Context[Bot], *, bundles: str | None) -> None:
         """
         Generate a list of bundles/series separated by `$`
         """
@@ -322,7 +321,7 @@ class Regex(commands.Cog):
         ):
             msg_id = reply.resolved.id
             description = reply.resolved.embeds[0].description
-            if msg_id not in tracks.keys():
+            if msg_id not in tracks:
                 tracks.update({msg_id: [description]})
             view = RowButtons(msg_id, regex_type=dl_regex)
             view.message = await ctx.send(view=view)
@@ -349,7 +348,7 @@ class CharacterLimitModal(discord.ui.Modal, title="Set Character Limit"):
 
 
 class RowButtons(discord.ui.View):
-    def __init__(self, msg_id: int, regex_type: Callable[[str], list[str]]):
+    def __init__(self, msg_id: int, regex_type: Callable[[str], list[str]]) -> None:
         self.max_character_count = None
         self.message: discord.InteractionMessage | discord.Message
         self.msg_id = msg_id
@@ -373,7 +372,7 @@ class RowButtons(discord.ui.View):
         characters_pages: list[tuple[str]] = list(constrained_batches(characters, 1960, get_len=get_len))
         return characters_pages
 
-    def format_embed(self, characters_pages: list[tuple[str]]):
+    def format_embed(self, characters_pages: list[tuple[str]]) -> discord.Embed:
         embed = discord.Embed(color=discord.Color.brand_red())
         description = characters_pages[self.current_page]
         embed.description = f"Total number of characters: {len(description)}\n```\n{' $'.join(description)}\n```"
@@ -391,7 +390,7 @@ class RowButtons(discord.ui.View):
         return embed
 
     @discord.ui.button(emoji="<:RemLeft:1052054214634913882>", style=discord.ButtonStyle.secondary)
-    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         characters_pages = self.characters_pages()
         if self.current_page <= 0:
             return await interaction.response.send_message("list index out of range", ephemeral=True)
@@ -399,7 +398,7 @@ class RowButtons(discord.ui.View):
         await interaction.response.edit_message(embed=self.format_embed(characters_pages))
 
     @discord.ui.button(emoji="<:RamRight:1052054203901673482>", style=discord.ButtonStyle.secondary)
-    async def next(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         characters_pages = self.characters_pages()
         if self.current_page >= len(characters_pages) - 1:
             return await interaction.response.send_message("list index out of range", ephemeral=True)
@@ -407,7 +406,7 @@ class RowButtons(discord.ui.View):
         await interaction.response.edit_message(embed=self.format_embed(characters_pages))
 
     @discord.ui.button(label="DM", emoji="\U0001f4eb", style=discord.ButtonStyle.secondary)
-    async def dm(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def dm(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         button.disabled = True
         if interaction.message:
             await interaction.message.edit(view=self)
@@ -428,7 +427,7 @@ class RowButtons(discord.ui.View):
             await interaction.message.edit(view=self)
 
     @discord.ui.button(label="Character Limit", style=discord.ButtonStyle.secondary, row=1)
-    async def character_limit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def character_limit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         modal = CharacterLimitModal()
         await interaction.response.send_modal(modal)
         timed_out = await modal.wait()
@@ -443,12 +442,12 @@ class RowButtons(discord.ui.View):
         await interaction.edit_original_response(embed=self.format_embed(self.characters_pages()))
 
     @discord.ui.button(label="Quit", style=discord.ButtonStyle.red, row=1)
-    async def quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]):
+    async def quit(self, interaction: discord.Interaction, button: discord.ui.Button[Self]) -> None:
         tracks.pop(self.msg_id)
         await interaction.response.defer()
         await interaction.delete_original_response()
         self.stop()
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Regex(bot))

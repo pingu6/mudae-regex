@@ -1,21 +1,21 @@
-# cogs / prefix.py
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from discord import Guild
 from discord.ext import commands
 
 if TYPE_CHECKING:
+    from discord import Guild
+
     from main import Bot
 
 
 class Prefix(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild: Guild):
+    async def on_guild_join(self, guild: Guild) -> None:
         self.bot.prefixes[guild.id] = self.bot.default_prefix
         async with self.bot.pool.acquire() as conn:
             await conn.execute(
@@ -33,7 +33,7 @@ class Prefix(commands.Cog):
             await conn.commit()
 
     @commands.Cog.listener()
-    async def on_guild_remove(self, guild: Guild):
+    async def on_guild_remove(self, guild: Guild) -> None:
         self.bot.prefixes[guild.id] = self.bot.default_prefix
         async with self.bot.pool.acquire() as conn:
             await conn.execute(
@@ -42,10 +42,10 @@ class Prefix(commands.Cog):
             )
             await conn.commit()
 
-    @commands.hybrid_command(name='prefix')
+    @commands.hybrid_command(name="prefix")
     @commands.has_permissions(administrator=True)
     @commands.guild_only()
-    async def prefix(self, ctx: commands.Context[Bot], prefix: str):
+    async def prefix(self, ctx: commands.Context[Bot], prefix: str) -> None:
         """change bot prefix"""
         if not ctx.guild:
             return
@@ -65,8 +65,8 @@ class Prefix(commands.Cog):
             )
             await conn.commit()
         self.bot.prefixes[ctx.guild.id] = prefix
-        await ctx.send(f'prefix changed to `{prefix}`')
+        await ctx.send(f"prefix changed to `{prefix}`")
 
 
-async def setup(bot: Bot):
+async def setup(bot: Bot) -> None:
     await bot.add_cog(Prefix(bot))
