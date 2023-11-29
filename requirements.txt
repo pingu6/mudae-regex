@@ -1,7 +1,7 @@
 discord.py
 jishaku
 git+https://github.com/Rapptz/discord-ext-menus
-git+https://github.com/InterStella0/starlight-dpy@8a84d34ec0cb4be8a2f01de6175c18eddf3ea39c
+git+https://github.com/InterStella0/starlight-dpy
 git+https://github.com/Rapptz/asqlite
 toml
 aiohttp
@@ -12,4 +12,3 @@ psutil
 aiofiles
 pygit2
 colormap
-aiofiles
