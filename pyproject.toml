@@ -1,0 +1,100 @@
+[tool.poetry]
+name = "mudae-regex"
+version = "0.1.0"
+description = "List splitter for mudae and more."
+authors = ["pingu <106933377+pingu6@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+"discord.py" = "^2.3.2"
+jishaku = "^2.5.1"
+toml = "^0.10.2"
+pillow = "^10.1.0"
+more-itertools = "^10.1.0"
+aiofiles = "^23.2.1"
+psutil = "^5.9.6"
+discord-ext-menus = { git = "https://github.com/Rapptz/discord-ext-menus" }
+starlight-dpy = { git = "https://github.com/InterStella0/starlight-dpy" }
+asqlite = { git = "https://github.com/Rapptz/asqlite" }
+colormap = "^1.0.6"
+pygit2 = "^1.13.1"
+aiohttp = "^3.8.6"
+fast-colorthief = "^0.0.5"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.0"
+black = "^23.9.1"
+
+# https://github.com/AbstractUmbra/Mipha/blob/main/pyproject.toml#L43-L108
+[tool.black]
+line-length = 125
+preview = true
+
+[tool.ruff]
+line-length = 125
+exclude = ["docs/extensions/*.py"]
+select = [
+    "C4",
+    "E",
+    "F",
+    "B",
+    "G",
+    "I",
+    "PTH",
+    "RUF",
+    "SIM",
+    "TCH",
+    "UP",
+    "W",
+    "PERF",
+    "ANN",
+]
+ignore = [
+    "F401",
+    "F402",
+    "F403",
+    "F405",
+    "PERF203",
+    "RUF001",
+    "RUF009",
+    "SIM105",
+    "UP034",
+    "UP038",
+    "ANN101",
+    "ANN102",
+    "ANN401",
+]
+[tool.ruff.isort]
+split-on-trailing-comma = true
+combine-as-imports = true
+
+[tool.ruff.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+
+
+[tool.pyright]
+useLibraryCodeForTypes = true
+typeCheckingMode = "stric"
+pythonVersion = "3.11"
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+strictParameterNoneValue = true
+reportMissingImports = "error"
+reportUnusedImport = "error"
+reportUnusedClass = "error"
+reportUnusedFunction = "error"
+reportUnusedVariable = "error"
+reportUnusedExpression = "error"
+reportGeneralTypeIssues = "error"
+reportDuplicateImport = "error"
+reportUntypedFunctionDecorator = "error"
+reportUnnecessaryTypeIgnoreComment = "warning"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
