@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING
 
 import discord
 import psutil
-import pygit2  # type: ignore
 from discord import utils
 from discord.ext import commands
+from pygit2 import Commit
+from pygit2.enums import SortMode
+from pygit2.repository import Repository
 
 if TYPE_CHECKING:
     from main import Bot
@@ -23,19 +25,19 @@ class About(commands.Cog):
     # This code is licensed MPL v2 from https://github.com/Rapptz/RoboDanny
     # https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/stats.py#L260-L304
 
-    def format_commit(self, commit: pygit2.Commit) -> str:
+    def format_commit(self, commit: Commit) -> str:
         short, _, _ = commit.message.partition("\n")
-        short_sha2 = commit.hex[:6]
+        short_sha2 = str(commit.id)[:6]
         commit_tz = datetime.timezone(datetime.timedelta(minutes=commit.commit_time_offset))
         commit_time = datetime.datetime.fromtimestamp(commit.commit_time).astimezone(commit_tz)
 
         # [`hash`](url) message (offset)
         offset = utils.format_dt(commit_time, style="R")
-        return f"[`{short_sha2}`](https://github.com/tuna-chan404/mudae-regex/commit/{commit.hex}) {short} ({offset})"
+        return f"[`{short_sha2}`](https://github.com/pingu6/mudae-regex/commit/{commit.id}) {short} ({offset})"
 
     def get_last_commits(self, count: int = 3) -> str:
-        repo = pygit2.Repository(".git")
-        commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
+        repo = Repository(".git")
+        commits = list(itertools.islice(repo.walk(repo.head.target, SortMode.TOPOLOGICAL), count))
         return "\n".join(self.format_commit(c) for c in commits)
 
     @commands.hybrid_command(name="about")
