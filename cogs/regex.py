@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import inspect
 import re
+import tomllib
+from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Self, Sized
 
 import discord
-import toml
 from discord import app_commands
 from discord.ext import commands
 from more_itertools import constrained_batches
@@ -17,7 +18,8 @@ tracks: dict[int, list[str]] = {}
 # a list of chracters that have '-' in there name, for exmple:
 # 'Sky Striker Ace - Roze'
 #                 ^
-EXCLUSION: list[str] = toml.load("config.toml")["exclusion_list"]
+with Path("config.toml").open("rb") as fp:
+    EXCLUSION: list[str] = tomllib.load(fp)["exclusion_list"]
 
 
 # +2 for ' $'

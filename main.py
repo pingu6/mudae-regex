@@ -1,19 +1,22 @@
 # main.py
 import datetime
 import logging
+import tomllib
+from pathlib import Path
 
 import aiofiles
 import aiohttp
 import asqlite
 import discord
 import starlight  # type: ignore
-import toml
 from asqlite import Pool
 from discord.ext import commands
 
 from cogs import EXTENSIONS
 
-config = toml.load("config.toml")
+with Path("config.toml").open("rb") as fp:
+    config = tomllib.load(fp)
+
 default_prefix = config["PREFIX"]
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 
