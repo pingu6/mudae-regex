@@ -48,30 +48,9 @@ class About(commands.Cog):
         embed.color = discord.Color.brand_red()
         embed.set_author(name=str(ctx.author.name), icon_url=ctx.author.display_avatar.url)
 
-        # statistics
-        total_members = 0
-        total_unique = len(self.bot.users)
-
-        text = 0
-        voice = 0
-        guilds = 0
-        for guild in self.bot.guilds:
-            guilds += 1
-            if guild.unavailable:
-                continue
-
-            total_members += guild.member_count or 0
-            for channel in guild.channels:
-                if isinstance(channel, discord.TextChannel):
-                    text += 1
-                elif isinstance(channel, discord.VoiceChannel):
-                    voice += 1
-        embed.add_field(name="Members", value=f"{total_members} total\n{total_unique} unique")
-        embed.add_field(name="Channels", value=f"{text + voice} total\n{text} text\n{voice} voice")
         memory_usage = self.process.memory_full_info().uss / 1024**2
         cpu_usage = self.process.cpu_percent() / psutil.cpu_count()
         embed.add_field(name="Process", value=f"{memory_usage:.2f} MiB\n{cpu_usage:.2f}% CPU")
-        embed.add_field(name="Guilds", value=guilds)
         embed.add_field(
             name="python",
             value=f"""
@@ -88,7 +67,7 @@ class About(commands.Cog):
                 emoji="<:github:1085015921829101748>",
                 label="Source Code",
                 url="https://github.com/pingu6/mudae-regex",
-            )
+            ),
         )
 
         await ctx.send(embed=embed, view=view)
