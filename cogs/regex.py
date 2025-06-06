@@ -40,8 +40,9 @@ def decode_exclusions(text: str) -> str:
 
 
 regex_pattern = re.compile(
-    r"^#\d+ - | [=\-·\|💞🚫] .*|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 1\d value: \d+|"
-    r"AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
+    r"^#\d{1,3}([., ]?\d{3})* - | [=\-·\|💞🚫] .*|[\u200b❌⭐🔐✅]| \d{1,3}([., ]?\d{3})* ka"
+    r"|\(Soulkeys: \d{1,3}([., ]?\d{3})*\)| \(#[\da-f]{6}\)|Top 1\d value: \d{1,3}([., ]?\d{3})*|AVG: \d{1,3}([., ]?\d{3})*"
+    r"|<?:kakera:(\d+)?>?|Total value: \d{1,3}([., ]?\d{3})*|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
@@ -75,9 +76,9 @@ def dl_regex(content: str) -> list[str]:
 
 
 clean_notes_pattern = re.compile(
-    r"^#\d+ - | ? 💞 => .+?(?= \|)| 🚫 \$.*| \· \(\$.*|[\u200b]| \d+ ka|\(Soulkeys: \d+\)| \(#[\da-f]{6}\)|Top 15"
-    r" value: \d+|"
-    r"AVG: \d+||Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
+    r"^#\d{1,3}([., ]?\d{3})* - | ? 💞 => .+?(?= \|)| 🚫 \$.*| \· \(\$.*|[\u200b]| \d{1,3}([., ]?\d{3})* ka"
+    r"|\(Soulkeys: \d{1,3}([., ]?\d{3})*\)| \(#[\da-f]{6}\)|Top 15 value: \d{1,3}([., ]?\d{3})*|AVG: \d{1,3}([., ]?\d{3})*"
+    r"|Total value: \d{1,3}([., ]?\d{3})*|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
@@ -109,8 +110,9 @@ def image_regex(content: str) -> list[str]:
 
 
 clean_ec_pattern = re.compile(
-    r"^#\d+ - |\s+?[=\-·\|💞🚫].+?(?= \(#)|[\u200b❌⭐🔐✅]| \d+ ka|\(Soulkeys: \d+\)|Top 15 value: \d+|"
-    r"AVG: \d+|<?:kakera:(\d+)?>?|Total value: \d+|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
+    r"^#\d{1,3}([., ]?\d{3})* - |\s+?[=\-·\|💞🚫].+?(?= \(#)|[\u200b❌⭐🔐✅]| \d{1,3}([., ]?\d{3})* ka"
+    r"|\(Soulkeys: \d{1,3}([., ]?\d{3})*\)|Top 15 value: \d{1,3}([., ]?\d{3})*|AVG: \d{1,3}([., ]?\d{3})*|<?:kakera:(\d+)?>?"
+    r"|Total value: \d{1,3}([., ]?\d{3})*|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
