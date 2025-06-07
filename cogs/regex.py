@@ -40,9 +40,10 @@ def decode_exclusions(text: str) -> str:
 
 
 regex_pattern = re.compile(
-    r"^#\d{1,3}([., ]?\d{3})* - | [=\-·\|💞🚫] .*|[\u200b❌⭐🔐✅]| \d{1,3}([., ]?\d{3})* ka"
-    r"|\(Soulkeys: \d{1,3}([., ]?\d{3})*\)| \(#[\da-f]{6}\)|Top 1\d value: \d{1,3}([., ]?\d{3})*|AVG: \d{1,3}([., ]?\d{3})*"
-    r"|<?:kakera:(\d+)?>?|Total value: \d{1,3}([., ]?\d{3})*|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
+    r"^#\d{1,3}([., ]?\d{3})* - |<?:(bronze|silver|gold|chaos)key:(\d+)?>?\s+\(\d{1,3}([., ]?\d{3})*\) | [=\-·\|💞🚫]>? .*"
+    r"|[\u200b❌⭐🔐✅]| \d{1,3}([., ]?\d{3})* ka|\(Soulkeys: \d{1,3}([., ]?\d{3})*\)| \(#[\da-f]{6}\)"
+    r"|Top 1\d value: \d{1,3}([., ]?\d{3})*|AVG: \d{1,3}([., ]?\d{3})*|<?:kakera:(\d+)?>?|Total value: \d{1,3}([., ]?\d{3})*"
+    r"|\d+ \$wa, \d+ \$ha, \d+ \$wg, \d+ \$hg|^.+ - \d+\/\d+",
     flags=re.M,
 )
 
