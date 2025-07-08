@@ -25,7 +25,7 @@ class Bot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(
             command_prefix=get_prefix,
-            intents=discord.Intents.all(),
+            intents=discord.Intents(guilds=True, messages=True, message_content=True),
             case_insensitive=True,
             strip_after_prefix=True,
             activity=discord.Game(name=f"{default_prefix}help"),
