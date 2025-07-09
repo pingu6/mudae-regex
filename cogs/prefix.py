@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from discord.ext import commands
+from discord import app_commands
 
 if TYPE_CHECKING:
     from discord import Guild
@@ -44,6 +45,7 @@ class Prefix(commands.Cog):
 
     @commands.hybrid_command(name="prefix")
     @commands.has_permissions(administrator=True)
+    @app_commands.default_permissions(administrator=True)
     @commands.guild_only()
     async def prefix(self, ctx: commands.Context[Bot], prefix: str) -> None:
         """change bot prefix"""
